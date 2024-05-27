@@ -208,7 +208,6 @@ class Main {
         //算法：从图中随机选择一个节点，随机选择一个边，然后随机选择一个节点，直到遇到已游走的边
         // 时间复杂度：O(n)
         //从graph中随机选择一个节点
-
         //随机选择一个边
         String[] nextWords = queryNextWord(randomWord);
         //.如果没有后继节点，则结束
