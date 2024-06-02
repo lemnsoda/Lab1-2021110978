@@ -46,9 +46,17 @@ class Main {
                     continue;
                 }
                 else{
+                    c = Character.toLowerCase(c);
                     sb.append(c);
                 }
                 prevChar = c;
+            }
+            else {
+                if (prevChar != ' ') {
+                    prevChar = ' ';
+                    sb.append(' ');
+                }
+
             }
         }
         return sb.toString();
@@ -68,24 +76,35 @@ class Main {
                 String nextWord = words[i + 1];
                 //判断word是否存在于图中
                 if(!graph.containsKey(word)){
+                    System.out.println(word + "->" + nextWord);
+                    //如果不存在，则添加到图中
                     Map<String, Integer> map = new HashMap<>();
                     map.put(nextWord, 1);
                     graph.put(word, map);
                 }
                 else{
                     //先判断对应的nextWord是否存在于图中
-                    if(graph.get(word).containsKey(nextWord)){
-                        graph.get(word).put(nextWord, graph.get(word).get(nextWord) + 1);
+                    boolean isNextWordInGraph = false;
+                    for (Map.Entry<String, Integer> entry : graph.get(word).entrySet()) {
+                        if (entry.getKey().equals(nextWord)) {
+                            //如果存在，则将权重+1
+                            int weight = entry.getValue() + 1;
+                            graph.get(word).put(nextWord, weight);
+                            isNextWordInGraph = true;
+                            break;
+                        }   //如果不存在，则添加到图中
                     }
-                    else{
+                    if(!isNextWordInGraph){
                         graph.get(word).put(nextWord, 1);
                     }
                 }
             }
             else {
                 //如果word是最后一个单词，则不再有后继节点
-                Map<String, Integer> map = new HashMap<>();
-                graph.put(word, map);
+                if (!graph.containsKey(word)) {
+                    Map<String, Integer> map = new HashMap<>();
+                    graph.put(word, map);
+                }
             }
         }
         return graph;
@@ -432,11 +451,13 @@ public class Lab1Window {
                 statusText.setText("选择文件成功");
                 String text = Main.getString(filePath);
                 cleanedText[0] = Main.cleanText(text);
+                System.out.println(cleanedText[0]);
                 String startWord = cleanedText[0].split(" ")[0];
                 statusText.setText("正在分析文本....");
                 Main.graph = Main.analyzeText(cleanedText[0]);
                 imagePath[0] = GraphVisualization.graphVisualization(Main.graph, startWord);
                 statusText.setText("分析文本完成！");
+                Main.showDirectedGraph(Main.graph);
             }
         });
         button2.addActionListener(new java.awt.event.ActionListener() {
@@ -445,7 +466,11 @@ public class Lab1Window {
                 //TODO: 实现生成有向图
                 if (imagePath[0] != null) {
                     //TODO:将图片展示在窗口中
-                    label.setIcon(new ImageIcon(imagePath[0]));
+                    ImageIcon icon = new ImageIcon(imagePath[0]);
+                    //跳转icon缩放
+                    Image image = icon.getImage().getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH);
+                    icon = new ImageIcon(image);
+                    label.setIcon(icon);
                     label.setVisible(true);
                     statusText.setText("展示有向图成功");
                 }
@@ -466,11 +491,14 @@ public class Lab1Window {
                         statusText.setText(Text);
                     } else {
                         if (bridgeWord[0] == null) {
-                            String Text = "No bridge words from" + word1 + " to " + word2 + "!";
+                            String Text = "No bridge words from " + word1 + " to " + word2 + "!";
                             statusText.setText(Text);
                         } else {
                             String Text = "The bridge words from " + word1 + " to " + word2 + " are: ";
                             for (int i = 0; i < bridgeWord.length; i++) {
+                                if (bridgeWord[i] == null) {
+                                    break;
+                                }
                                 Text += bridgeWord[i] + " ";
                             }
                             statusText.setText(Text);
