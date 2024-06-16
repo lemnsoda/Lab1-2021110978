@@ -644,27 +644,22 @@ final class Lab1Window {
         return null;
     }
     // 计算从源节点到目标节点的所有最短路径
-    public static List<List<String>> shortestPaths(Map<String, Map<String, Integer>> graph,
-                                                   String source, String target) {
-        // 存储节点到源节点的最短距离
+    public static List<List<String>> calcShortestPath(Map<String, Map<String, Integer>> graph,
+                                                      String source, String target) {
         Map<String, Integer> distance = new HashMap<>();
-        // 存储节点的前驱节点，用于最后构建路径
         Map<String, List<String>> predecessors = new HashMap<>();
-        // 存储所有最短路径
-        List<List<String>> shortestPaths = new ArrayList<>();
-        // 未访问的节点
+        List<List<String>> calcShortestPath = new ArrayList<>();
         Queue<String> unvisited = new PriorityQueue<>(Comparator.comparingInt(distance::get));
 
-        // 初始化距离，源节点为0，其他节点为无穷大
         for (String node : graph.keySet()) {
             distance.put(node, node.equals(source) ? 0 : Integer.MAX_VALUE);
             unvisited.add(node);
         }
-        // 计算最短路径
+
         while (!unvisited.isEmpty()) {
             String current = unvisited.poll();
             if (current.equals(target)) {
-                break; // 已找到目标节点，结束循环
+                break;
             }
             Map<String, Integer> neighbors = graph.get(current);
             if (neighbors != null) {
@@ -673,42 +668,41 @@ final class Lab1Window {
                     if (newDistance < distance.getOrDefault(neighbor, Integer.MAX_VALUE)) {
                         distance.put(neighbor, newDistance);
                         predecessors.put(neighbor, new ArrayList<>(Collections.singletonList(current)));
+                        // 更新优先级队列
+                        unvisited.remove(neighbor);
                         unvisited.add(neighbor);
                     } else if (newDistance == distance.getOrDefault(neighbor, Integer.MAX_VALUE)) {
-                        // 如果有多条等长的路径，则将当前节点加入到前驱节点列表中
                         predecessors.get(neighbor).add(current);
                     }
                 }
             }
         }
-        // 构建最短路径
-        buildPaths(source, target, predecessors, new ArrayList<>(), shortestPaths, new HashSet<>());
-        return shortestPaths;
+        buildPaths(source, target, predecessors, new ArrayList<>(), calcShortestPath, new HashSet<>());
+        return calcShortestPath;
     }
-    // 递归构建最短路径
-    private static void buildPaths(String source, String current, Map<String, List<String>> predecessors,
-                                   List<String> path, List<List<String>> shortestPaths, Set<String> visited) {
-        path.add(current);
-        visited.add(current); // 将当前节点标记为已访问
 
+    private static void buildPaths(String source, String current, Map<String, List<String>> predecessors,
+                                   List<String> path, List<List<String>> calcShortestPath, Set<String> visited) {
+        path.add(current);
+        visited.add(current);
         if (current.equals(source)) {
-            // 逆序添加路径到结果列表中
             List<String> shortestPath = new ArrayList<>(path);
             Collections.reverse(shortestPath);
-            shortestPaths.add(shortestPath);
+            calcShortestPath.add(shortestPath);
         } else {
-            // 递归构建路径
             List<String> predecessorsList = predecessors.get(current);
             if (predecessorsList != null) {
                 for (String predecessor : predecessorsList) {
-                    if (!visited.contains(predecessor)) { // 检查前驱节点是否已经访问过
-                        buildPaths(source, predecessor, predecessors, path, shortestPaths, visited);
+                    if (!visited.contains(predecessor)) {
+                        buildPaths(source, predecessor, predecessors, path, calcShortestPath, visited);
                     }
                 }
             }
         }
         path.remove(path.size() - 1);
+        visited.remove(current);  // 递归返回时将节点标记为未访问
     }
+
     public static String theRoad(Map<String, Map<String, Integer>> graph) {
         // 输入节点
         String source = JOptionPane.showInputDialog("Enter source node: ");
@@ -720,7 +714,7 @@ final class Lab1Window {
             sb.append("Shortest paths from ").append(source).append(" to any other node:\n");
             for (String node : graph.keySet()) {
                 if (!node.equals(source)) {
-                    List<List<String>> paths = shortestPaths(graph, source, node);
+                    List<List<String>> paths = calcShortestPath(graph, source, node);
                     for (List<String> path : paths) {
                         System.out.println(path);
                         sb.append(path);
@@ -729,7 +723,7 @@ final class Lab1Window {
             }
         } else {
             // 计算源节点到目标节点的最短路径
-            List<List<String>> paths = shortestPaths(graph, source, target);
+            List<List<String>> paths = calcShortestPath(graph, source, target);
             if (paths.isEmpty()) {
                 System.out.println("No path found.");
                 sb.append("No path found.");
